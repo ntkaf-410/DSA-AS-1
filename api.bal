@@ -1,6 +1,7 @@
 import ballerina/http;
 
-listener http:Listener apiListener = new (9090);
+configurable int port = 9090;
+listener http:Listener apiListener = new (port);
 
 service /api on apiListener {
 
@@ -26,13 +27,19 @@ service /api on apiListener {
     }
 
 
-    // READ ALL
-    resource function get assets() returns Asset[] {
+    // Lists assets for the selected institution and site.
+    resource function get assets(string? institution = (), string? site = ())
+            returns Asset[]|http:BadRequest {
+        if hasBlankFilter(institution, site) {
+            return {body: {message: "institution and site must not be blank."}};
+        }
 
         Asset[] assets = [];
 
         foreach Asset asset in assetStore {
-            assets.push(asset);
+            if matchesLocation(asset, institution, site) {
+                assets.push(asset);
+            }
         }
 
         return assets;
