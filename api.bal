@@ -5,6 +5,85 @@ listener http:Listener apiListener = new (port);
 
 service /api on apiListener {
 
+    // Lists the schedules for an asset.
+    resource function get assets/[string assetTag]/schedules() returns Schedule[]|http:NotFound {
+        Asset? asset = assetStore[assetTag];
+        if asset is () {
+            return notFound("Asset", assetTag);
+        }
+        return asset.schedules;
+    }
+
+    // Looks up one schedule for an asset.
+    resource function get assets/[string assetTag]/schedules/[string scheduleId]()
+            returns Schedule|http:NotFound {
+        Asset? asset = assetStore[assetTag];
+        if asset is () {
+            return notFound("Asset", assetTag);
+        }
+        int? index = findScheduleIndex(asset, scheduleId);
+        if index is () {
+            return notFound("Schedule", scheduleId);
+        }
+        return asset.schedules[index];
+    }
+
+    // Adds a booking or servicing schedule to an asset.
+    resource function post assets/[string assetTag]/schedules(Schedule schedule)
+            returns Schedule|http:NotFound|http:BadRequest|http:Conflict {
+        Asset? asset = assetStore[assetTag];
+        if asset is () {
+            return notFound("Asset", assetTag);
+        }
+        string? problem = validateSchedule(schedule);
+        if problem is string {
+            return badRequest(problem);
+        }
+        if findScheduleIndex(asset, schedule.scheduleId) is int {
+            return duplicateResponse("Schedule", schedule.scheduleId);
+        }
+        asset.schedules.push(schedule);
+        return schedule;
+    }
+
+    // Replaces a schedule while keeping its identifier.
+    resource function put assets/[string assetTag]/schedules/[string scheduleId](Schedule schedule)
+            returns Schedule|http:NotFound|http:BadRequest {
+        Asset? asset = assetStore[assetTag];
+        if asset is () {
+            return notFound("Asset", assetTag);
+        }
+        int? index = findScheduleIndex(asset, scheduleId);
+        if index is () {
+            return notFound("Schedule", scheduleId);
+        }
+        if schedule.scheduleId != scheduleId {
+            return badRequest("scheduleId in URL must match scheduleId in request body.");
+        }
+        string? problem = validateSchedule(schedule);
+        if problem is string {
+            return badRequest(problem);
+        }
+        asset.schedules[index] = schedule;
+        return schedule;
+    }
+
+    // Removes a schedule from an asset.
+    resource function delete assets/[string assetTag]/schedules/[string scheduleId]()
+            returns http:NoContent|http:NotFound {
+        Asset? asset = assetStore[assetTag];
+        if asset is () {
+            return notFound("Asset", assetTag);
+        }
+        int? index = findScheduleIndex(asset, scheduleId);
+        if index is () {
+            return notFound("Schedule", scheduleId);
+        }
+        _ = asset.schedules.remove(index);
+        http:NoContent response = {};
+        return response;
+    }
+
     // Lists assets with maintenance dates before the selected date.
     resource function get overdue(string? asOf = (), string? institution = (), string? site = ())
             returns Asset[]|http:BadRequest {
