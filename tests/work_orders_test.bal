@@ -1,7 +1,7 @@
 import ballerina/http;
 import ballerina/test;
 
-// Checks work orders and task changes through the API.
+// Check work orders and task changes through the API.
 @test:Config {}
 function testWorkOrders() returns error? {
     string path = "/assets/NUST-LAP-014/workorders";

@@ -1,6 +1,6 @@
 import ballerina/http;
 
-// Finds a work order by its identifier within an asset.
+// Find a work order by its identifier within an asset.
 function findWorkOrderIndex(Asset asset, string orderId) returns int? {
     foreach int index in 0 ..< asset.workOrders.length() {
         if asset.workOrders[index].orderId == orderId {
@@ -10,7 +10,7 @@ function findWorkOrderIndex(Asset asset, string orderId) returns int? {
     return ();
 }
 
-// Finds a work order or returns the missing record response.
+// Find a work order or return the missing record response.
 function lookupWorkOrder(string assetTag, string orderId) returns WorkOrder|http:NotFound {
     Asset? asset = assetStore[assetTag];
     if asset is () {
@@ -23,7 +23,7 @@ function lookupWorkOrder(string assetTag, string orderId) returns WorkOrder|http
     return asset.workOrders[index];
 }
 
-// Finds a task by its identifier within a work order.
+// Find a task by its identifier within a work order.
 function findTaskIndex(WorkOrder workOrder, string taskId) returns int? {
     foreach int index in 0 ..< workOrder.tasks.length() {
         if workOrder.tasks[index].taskId == taskId {
@@ -33,7 +33,7 @@ function findTaskIndex(WorkOrder workOrder, string taskId) returns int? {
     return ();
 }
 
-// Checks the required task details before saving.
+// Check the required task details before saving.
 function validateTask(Task task) returns string? {
     if task.taskId.trim() == "" || task.description.trim() == "" {
         return "taskId and description must not be blank.";
@@ -41,7 +41,7 @@ function validateTask(Task task) returns string? {
     return ();
 }
 
-// Checks a work order and rejects duplicate task identifiers.
+// Check a work order and reject duplicate task identifiers.
 function validateWorkOrder(WorkOrder workOrder) returns string? {
     if workOrder.orderId.trim() == "" || workOrder.description.trim() == "" {
         return "orderId and description must not be blank.";

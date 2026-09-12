@@ -1,11 +1,11 @@
 import ballerina/time;
 
-// Returns today's date in UTC.
+// Return today's date in UTC.
 function currentDate() returns string {
     return time:utcToString(time:utcNow()).substring(0, 10);
 }
 
-// Checks the date format and calendar day.
+// Check the date format and calendar day.
 function isValidDate(string value) returns boolean {
     if value.length() != 10 || value.substring(4, 5) != "-" || value.substring(7, 8) != "-" {
         return false;
@@ -29,7 +29,7 @@ function isValidDate(string value) returns boolean {
     return year > 0 && time:dateValidate({year, month, day}) is ();
 }
 
-// Finds a past maintenance or servicing date for an asset.
+// Find a past maintenance or servicing date for an asset.
 function hasOverdueMaintenance(Asset asset, string cutoff) returns boolean {
     foreach Schedule schedule in asset.schedules {
         if (schedule.'type == "MAINTENANCE" || schedule.'type == "SERVICING") &&

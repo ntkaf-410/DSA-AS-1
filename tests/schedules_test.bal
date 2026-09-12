@@ -1,7 +1,7 @@
 import ballerina/http;
 import ballerina/test;
 
-// Checks schedule changes and their effect on overdue results.
+// Check schedule changes and their effect on overdue results.
 @test:Config {}
 function testSchedules() returns error? {
     string path = "/assets/NUST-LAP-014/schedules";

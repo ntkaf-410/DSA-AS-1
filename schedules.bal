@@ -1,4 +1,4 @@
-// Finds a schedule by its identifier within an asset.
+// Find a schedule by its identifier within an asset.
 function findScheduleIndex(Asset asset, string scheduleId) returns int? {
     foreach int index in 0 ..< asset.schedules.length() {
         if asset.schedules[index].scheduleId == scheduleId {
@@ -8,7 +8,7 @@ function findScheduleIndex(Asset asset, string scheduleId) returns int? {
     return ();
 }
 
-// Checks the required schedule details before saving.
+// Check the required schedule details before saving.
 function validateSchedule(Schedule schedule) returns string? {
     if schedule.scheduleId.trim() == "" || schedule.description.trim() == "" {
         return "scheduleId and description must not be blank.";

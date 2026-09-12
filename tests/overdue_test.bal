@@ -1,7 +1,7 @@
 import ballerina/http;
 import ballerina/test;
 
-// Checks past maintenance dates and excludes bookings and dates due today.
+// Check past maintenance dates and exclude bookings and dates due today.
 @test:Config {}
 function testOverdueAssets() returns error? {
     Asset[] overdue = check apiClient->get("/overdue?asOf=2026-09-01");

@@ -5,7 +5,7 @@ listener http:Listener apiListener = new (port);
 
 service /api on apiListener {
 
-    // Lists the work orders for an asset.
+    // List the work orders for an asset.
     resource function get assets/[string assetTag]/workorders() returns WorkOrder[]|http:NotFound {
         Asset? asset = assetStore[assetTag];
         if asset is () {
@@ -14,13 +14,13 @@ service /api on apiListener {
         return asset.workOrders;
     }
 
-    // Looks up one work order for an asset.
+    // Look up one work order for an asset.
     resource function get assets/[string assetTag]/workorders/[string orderId]()
             returns WorkOrder|http:NotFound {
         return lookupWorkOrder(assetTag, orderId);
     }
 
-    // Opens a work order for an asset.
+    // Open a work order for an asset.
     resource function post assets/[string assetTag]/workorders(WorkOrder workOrder)
             returns WorkOrder|http:NotFound|http:BadRequest|http:Conflict {
         Asset? asset = assetStore[assetTag];
@@ -41,7 +41,7 @@ service /api on apiListener {
         return workOrder;
     }
 
-    // Updates a work order or closes it with CLOSED status.
+    // Update a work order or close it with CLOSED status.
     resource function put assets/[string assetTag]/workorders/[string orderId](WorkOrder workOrder)
             returns WorkOrder|http:NotFound|http:BadRequest {
         Asset? asset = assetStore[assetTag];
@@ -63,7 +63,7 @@ service /api on apiListener {
         return workOrder;
     }
 
-    // Removes a work order and its tasks.
+    // Remove a work order and its tasks.
     resource function delete assets/[string assetTag]/workorders/[string orderId]()
             returns http:NoContent|http:NotFound {
         Asset? asset = assetStore[assetTag];
@@ -79,7 +79,7 @@ service /api on apiListener {
         return response;
     }
 
-    // Lists the tasks in a work order.
+    // List the tasks in a work order.
     resource function get assets/[string assetTag]/workorders/[string orderId]/tasks()
             returns Task[]|http:NotFound {
         WorkOrder|http:NotFound workOrder = lookupWorkOrder(assetTag, orderId);
@@ -89,7 +89,7 @@ service /api on apiListener {
         return workOrder.tasks;
     }
 
-    // Looks up one task in a work order.
+    // Look up one task in a work order.
     resource function get assets/[string assetTag]/workorders/[string orderId]/tasks/[string taskId]()
             returns Task|http:NotFound {
         WorkOrder|http:NotFound workOrder = lookupWorkOrder(assetTag, orderId);
@@ -103,7 +103,7 @@ service /api on apiListener {
         return workOrder.tasks[index];
     }
 
-    // Adds a task to a work order.
+    // Add a task to a work order.
     resource function post assets/[string assetTag]/workorders/[string orderId]/tasks(Task task)
             returns Task|http:NotFound|http:BadRequest|http:Conflict {
         WorkOrder|http:NotFound workOrder = lookupWorkOrder(assetTag, orderId);
@@ -121,7 +121,7 @@ service /api on apiListener {
         return task;
     }
 
-    // Updates a task description and completion state.
+    // Update a task description and completion state.
     resource function put assets/[string assetTag]/workorders/[string orderId]/tasks/[string taskId](Task task)
             returns Task|http:NotFound|http:BadRequest {
         WorkOrder|http:NotFound workOrder = lookupWorkOrder(assetTag, orderId);
@@ -143,7 +143,7 @@ service /api on apiListener {
         return task;
     }
 
-    // Removes a task from a work order.
+    // Remove a task from a work order.
     resource function delete assets/[string assetTag]/workorders/[string orderId]/tasks/[string taskId]()
             returns http:NoContent|http:NotFound {
         WorkOrder|http:NotFound workOrder = lookupWorkOrder(assetTag, orderId);
@@ -159,7 +159,7 @@ service /api on apiListener {
         return response;
     }
 
-    // Lists the schedules for an asset.
+    // List the schedules for an asset.
     resource function get assets/[string assetTag]/schedules() returns Schedule[]|http:NotFound {
         Asset? asset = assetStore[assetTag];
         if asset is () {
@@ -168,7 +168,7 @@ service /api on apiListener {
         return asset.schedules;
     }
 
-    // Looks up one schedule for an asset.
+    // Look up one schedule for an asset.
     resource function get assets/[string assetTag]/schedules/[string scheduleId]()
             returns Schedule|http:NotFound {
         Asset? asset = assetStore[assetTag];
@@ -182,7 +182,7 @@ service /api on apiListener {
         return asset.schedules[index];
     }
 
-    // Adds a booking or servicing schedule to an asset.
+    // Add a booking or servicing schedule to an asset.
     resource function post assets/[string assetTag]/schedules(Schedule schedule)
             returns Schedule|http:NotFound|http:BadRequest|http:Conflict {
         Asset? asset = assetStore[assetTag];
@@ -200,7 +200,7 @@ service /api on apiListener {
         return schedule;
     }
 
-    // Replaces a schedule while keeping its identifier.
+    // Replace a schedule while keeping its identifier.
     resource function put assets/[string assetTag]/schedules/[string scheduleId](Schedule schedule)
             returns Schedule|http:NotFound|http:BadRequest {
         Asset? asset = assetStore[assetTag];
@@ -222,7 +222,7 @@ service /api on apiListener {
         return schedule;
     }
 
-    // Removes a schedule from an asset.
+    // Remove a schedule from an asset.
     resource function delete assets/[string assetTag]/schedules/[string scheduleId]()
             returns http:NoContent|http:NotFound {
         Asset? asset = assetStore[assetTag];
@@ -238,7 +238,7 @@ service /api on apiListener {
         return response;
     }
 
-    // Lists assets with maintenance dates before the selected date.
+    // List assets with maintenance dates before the selected date.
     resource function get overdue(string? asOf = (), string? institution = (), string? site = ())
             returns Asset[]|http:BadRequest {
         string cutoff = asOf ?: currentDate();
@@ -257,29 +257,24 @@ service /api on apiListener {
         return overdueAssets;
     }
 
-    // CREATE
+    // Create an asset after checking its details.
     resource function post assets(Asset newAsset)
-            returns Asset|http:Conflict {
+            returns Asset|http:Conflict|http:BadRequest {
 
         if assetStore.hasKey(newAsset.assetTag) {
-            http:Conflict conflictResponse = {
-                body: {
-                    message: "Asset with assetTag '" +
-                        newAsset.assetTag +
-                        "' already exists."
-                }
-            };
-
-            return conflictResponse;
+            return duplicateResponse("Asset", newAsset.assetTag);
         }
-
+        string? problem = validateAsset(newAsset);
+        if problem is string {
+            return badRequest(problem);
+        }
         assetStore[newAsset.assetTag] = newAsset;
 
         return newAsset;
     }
 
 
-    // Lists assets for the selected institution and site.
+    // List assets for the selected institution and site.
     resource function get assets(string? institution = (), string? site = ())
             returns Asset[]|http:BadRequest {
         if hasBlankFilter(institution, site) {
@@ -298,7 +293,7 @@ service /api on apiListener {
     }
 
 
-    // READ ONE
+    // Look up an asset by its tag.
     resource function get assets/[string assetTag]()
             returns Asset|http:NotFound {
 
@@ -308,40 +303,26 @@ service /api on apiListener {
             return asset;
         }
 
-        http:NotFound notFound = {
-            body: {
-                message: "Asset '" + assetTag + "' not found."
-            }
-        };
-
-        return notFound;
+        return notFound("Asset", assetTag);
     }
 
 
-    // UPDATE
+    // Replace an asset after checking its tag and details.
     resource function put assets/[string assetTag](Asset updatedAsset)
             returns Asset|http:NotFound|http:BadRequest {
 
         Asset? existingAsset = assetStore[assetTag];
 
         if existingAsset is () {
-            http:NotFound notFound = {
-                body: {
-                    message: "Asset '" + assetTag + "' not found."
-                }
-            };
-
-            return notFound;
+            return notFound("Asset", assetTag);
         }
 
         if updatedAsset.assetTag != assetTag {
-            http:BadRequest badRequest = {
-                body: {
-                    message: "assetTag in URL must match assetTag in request body."
-                }
-            };
-
-            return badRequest;
+            return badRequest("assetTag in URL must match assetTag in request body.");
+        }
+        string? problem = validateAsset(updatedAsset);
+        if problem is string {
+            return badRequest(problem);
         }
 
         assetStore[assetTag] = updatedAsset;
@@ -350,20 +331,14 @@ service /api on apiListener {
     }
 
 
-    // DELETE
+    // Remove an asset by its tag.
     resource function delete assets/[string assetTag]()
             returns http:NoContent|http:NotFound {
 
         Asset? existingAsset = assetStore[assetTag];
 
         if existingAsset is () {
-            http:NotFound notFound = {
-                body: {
-                    message: "Asset '" + assetTag + "' not found."
-                }
-            };
-
-            return notFound;
+            return notFound("Asset", assetTag);
         }
 
         _ = assetStore.remove(assetTag);
