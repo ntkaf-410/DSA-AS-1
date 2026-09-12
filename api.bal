@@ -5,6 +5,25 @@ listener http:Listener apiListener = new (port);
 
 service /api on apiListener {
 
+    // Lists assets with maintenance dates before the selected date.
+    resource function get overdue(string? asOf = (), string? institution = (), string? site = ())
+            returns Asset[]|http:BadRequest {
+        string cutoff = asOf ?: currentDate();
+        if !isValidDate(cutoff) {
+            return {body: {message: "asOf must be a valid date in YYYY-MM-DD format."}};
+        }
+        if hasBlankFilter(institution, site) {
+            return {body: {message: "institution and site must not be blank."}};
+        }
+        Asset[] overdueAssets = [];
+        foreach Asset asset in assetStore {
+            if matchesLocation(asset, institution, site) && hasOverdueMaintenance(asset, cutoff) {
+                overdueAssets.push(asset);
+            }
+        }
+        return overdueAssets;
+    }
+
     // CREATE
     resource function post assets(Asset newAsset)
             returns Asset|http:Conflict {
