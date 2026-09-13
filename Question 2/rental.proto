@@ -2,12 +2,12 @@ syntax = "proto3";
 
 package rental;
 
-// ============================================================
+
 // Rental Accommodation System — gRPC contract (Question 2)
 // Ministry of Tourism: Hosts list properties, Guests browse and book.
-// ============================================================
 
-// ---------- Enums ----------
+
+// Enums 
 
 enum PropertyType {
     PROPERTY_TYPE_UNSPECIFIED = 0;
@@ -31,7 +31,7 @@ enum UserRole {
     GUEST = 2;
 }
 
-// ---------- Property messages ----------
+// Property messages 
 
 message Property {
     string property_id = 1;
@@ -95,7 +95,7 @@ message SearchResponse {
     Property property = 3;
 }
 
-// ---------- User messages ----------
+// User messages 
 
 message UserProfile {
     string user_id = 1;
@@ -110,7 +110,7 @@ message Confirmation {
     string message = 3;
 }
 
-// ---------- Booking messages ----------
+// Booking messages 
 
 message BookingRequest {
     string guest_id = 1;
@@ -139,7 +139,7 @@ message BookingConfirmation {
     string message = 6;
 }
 
-// ---------- Service ----------
+// Service 
 
 service RentalService {
     // Simple RPC — Host lists a new property, gets back its property_id.
