@@ -12,6 +12,7 @@
 
 import ballerina/grpc;
 import ballerina/io;
+import ballerina/lang.runtime;
 
 // Address of the RentalService server. Kept configurable so it can be pointed
 // at a different host/port (e.g. in Config.toml) without touching the code.
@@ -20,6 +21,10 @@ configurable string serverUrl = "http://localhost:9090";
 public function main() {
     // `do`/`on fail` catches any error bubbling up from the `check`s below so
     // one failed step prints a clear message instead of crashing the client.
+    /// A short sleep gives the listener time to finish binding before the
+    // client dials in, otherwise the first call can hit the socket before
+    // the server side is actually ready to accept it.
+    runtime:sleep(1);
     do {
         io:println(" Rental Accommodation System — gRPC Client Demo");
 
