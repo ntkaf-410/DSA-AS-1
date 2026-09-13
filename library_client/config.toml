@@ -1,0 +1,3 @@
+# Base URL of the running Library & Resource Management API (see api.bal / Config.toml
+# in the service package - it listens on port 9091 by default).
+apiBaseUrl = "http://localhost:9091/api"
