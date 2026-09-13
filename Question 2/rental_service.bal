@@ -8,6 +8,7 @@ import ballerina/grpc;
 configurable int grpcPort = 9090;
 listener grpc:Listener rentalListener = new (grpcPort);
 
+@grpc:Descriptor {value: RENTAL_DESC}  
 service "RentalService" on rentalListener {
 
     // Host lists a new property. Status defaults to AVAILABLE if the
@@ -129,7 +130,7 @@ service "RentalService" on rentalListener {
             return {
                 available: false,
                 message: "Property '" + value.property_id + "' does not exist.",
-                property: ()
+                property: {}
             };
         }
         if found.status != AVAILABLE {
