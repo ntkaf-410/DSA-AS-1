@@ -1,7 +1,7 @@
 import ballerina/http;
 import ballerina/url;
 
-configurable string apiBaseUrl = "http://localhost:9091/api";
+configurable string apiBaseUrl = "http://localhost:9090/api";
 
 final http:Client apiClient = check new (apiBaseUrl);
 
